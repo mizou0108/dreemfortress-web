@@ -1,0 +1,40 @@
+name: DreemFortress Firebase Deployment
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - Organized/**
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      FIREBASE_BUCKET: ${{ secrets.FIREBASE_BUCKET }}
+      FIREBASE_TOKEN_PATH: ${{ secrets.FIREBASE_TOKEN_PATH }}
+
+    steps:
+      - name: 🔄 Checkout repository
+        uses: actions/checkout@v3
+
+      - name: 🧰 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: 📦 Install dependencies
+        run: |
+          pip install firebase-admin python-dotenv
+
+      - name: ☁️ Upload to Firebase
+        run: python upload_to_firebase.py
+
+      - name: 📡 Notify Telegram
+        run: |
+          curl -s -X POST https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage \
+            -d chat_id=$TELEGRAM_CHAT_ID \
+            -d text="✅ تم رفع ملفات DreemFortress إلى Firebase بنجاح بعد Push إلى GitHub."
